@@ -1,4 +1,15 @@
 const puppeteer = require("puppeteer"); // Can I use es6 modules?
+const admin = require("firebase-admin");
+// const serviceAccount = require("path/to/serviceAccountKey.json");
+
+// admin.initializeApp({
+//   credential: admin.credential.applicationDefault(),
+//   databaseURL: "https://wilden.firebaseio.com",
+// });
+
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount)
+// });
 
 /* Det verkar som att det kommer två priser när en växt är på rea.
  * Hur matchar jag att något kostar typ en miljon?? Känns som att vi borde ta höjd för det i alla fall.
@@ -7,6 +18,9 @@ const puppeteer = require("puppeteer"); // Can I use es6 modules?
 
 // https://www.youtube.com/watch?v=4q9CNtwdawA&ab_channel=FabianGrohs
 const fetchProductsFromGronvaxtriket = async (url) => {
+  admin.initializeApp();
+  const db = admin.firestore();
+
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
   fixConsoleLog(page);
@@ -15,6 +29,17 @@ const fetchProductsFromGronvaxtriket = async (url) => {
 
   const allProducts = await findAndTransformAllProducts(page);
   console.log("allProducts", allProducts);
+
+  allProducts.forEach(async (item) => {
+    await db.collection("Plants").add(item);
+  });
+
+  // const res = await db.collection("cities").add({
+  //   name: "Tokyo",
+  //   country: "Japan",
+  // });
+
+  // console.log("Added document with ID: ", res.id);
 
   await browser.close();
 };
