@@ -16,6 +16,12 @@ const admin = require("firebase-admin");
  * Jag kommer också behöva plocka ut vilken currency något är i.
  */
 
+const namesToSave = [
+  "MONSTERA SILTEPECEANA",
+  "MONSTERA STANDAYLANA",
+  "MONSTERA DUBIA",
+];
+
 // https://www.youtube.com/watch?v=4q9CNtwdawA&ab_channel=FabianGrohs
 const fetchProductsFromGronvaxtriket = async (url) => {
   admin.initializeApp();
@@ -28,20 +34,53 @@ const fetchProductsFromGronvaxtriket = async (url) => {
   await page.goto(url);
 
   const allProducts = await findAndTransformAllProducts(page);
-  console.log("allProducts", allProducts);
+  // console.log("allProducts", allProducts);
 
-  allProducts.forEach(async (item) => {
-    await db.collection("Plants").add(item);
-  });
-
-  // const res = await db.collection("cities").add({
-  //   name: "Tokyo",
-  //   country: "Japan",
+  // Save to database
+  // allProducts.forEach(async (item) => {
+  //   await db.collection("Plants").add(item);
   // });
 
-  // console.log("Added document with ID: ", res.id);
+  const filteredProds = allProducts
+    .filter((item) => {
+      for (const name of namesToSave) {
+        const match = item.name.match(name);
+        if (match) {
+          console.log("item", item);
+          return true;
+        }
+      }
+    })
+    .map((item) => {
+      // for (const name of namesToSave) {
+      //   const match = item.name.match(name);
+      //   if (match) {
+      //     console.log("match  ", match);
+      //     return {
+      //       ...item,
+      //       name: match[0],
+      //     };
+      //   }
+      // }
+
+      return forEachApprovedName(item);
+    });
+
+  console.log("filteredProds", filteredProds);
 
   await browser.close();
+};
+
+const forEachApprovedName = (item) => {
+  for (const name of namesToSave) {
+    const match = item.name.match(name);
+    if (match) {
+      return {
+        ...item,
+        name: match[0],
+      };
+    }
+  }
 };
 
 function fixConsoleLog(page) {
