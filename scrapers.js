@@ -20,6 +20,7 @@ const namesToSave = [
   "MONSTERA SILTEPECEANA",
   "MONSTERA STANDAYLANA",
   "MONSTERA DUBIA",
+  "SYNGONIUM PINK SPLASH", // Denna hittas inte för att det finns "podophyllum" emellan. Behöver ses över!
 ];
 
 // https://www.youtube.com/watch?v=4q9CNtwdawA&ab_channel=FabianGrohs
@@ -41,37 +42,26 @@ const fetchProductsFromGronvaxtriket = async (url) => {
   //   await db.collection("Plants").add(item);
   // });
 
-  const filteredProds = allProducts
-    .filter((item) => {
-      for (const name of namesToSave) {
-        const match = item.name.match(name);
-        if (match) {
-          console.log("item", item);
-          return true;
-        }
+  const productsWithVariants = allProducts.map((item) => {
+    for (const name of namesToSave) {
+      const match = item.name.match(name);
+      if (match) {
+        return {
+          ...item,
+          variant: match[0],
+        };
       }
-    })
-    .map((item) => {
-      // for (const name of namesToSave) {
-      //   const match = item.name.match(name);
-      //   if (match) {
-      //     console.log("match  ", match);
-      //     return {
-      //       ...item,
-      //       name: match[0],
-      //     };
-      //   }
-      // }
 
-      return forEachApprovedName(item);
-    });
+      return item;
+    }
+  });
 
-  console.log("filteredProds", filteredProds);
+  console.log("productsWithVariants", productsWithVariants);
 
   await browser.close();
 };
 
-const forEachApprovedName = (item) => {
+const forEachApprovedNameSetNewItemName = (item) => {
   for (const name of namesToSave) {
     const match = item.name.match(name);
     if (match) {
