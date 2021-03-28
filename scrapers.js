@@ -1,5 +1,6 @@
 const puppeteer = require("puppeteer"); // Can I use es6 modules?
 const admin = require("firebase-admin");
+const fetch = require("node-fetch");
 // const serviceAccount = require("path/to/serviceAccountKey.json");
 
 // admin.initializeApp({
@@ -44,7 +45,7 @@ const fetchProductsFromGronvaxtriket = async (url) => {
 
   const productsWithVariants = allProducts.map((item) => {
     for (const name of namesToSave) {
-      const match = item.name.match(name);
+      const match = item.name.match(name); // Denna verkar bara matcha när namnet exakt samma.
       if (match) {
         return {
           ...item,
@@ -56,22 +57,43 @@ const fetchProductsFromGronvaxtriket = async (url) => {
     }
   });
 
-  console.log("productsWithVariants", productsWithVariants);
+  const withImage = await Promise.all(
+    productsWithVariants.map(async (item) => {
+      const image = await fetch(item.url)
+        .then((result) => {
+          // console.log("result", result.blob());
+          // test = result.blob();
+          return result.blob();
+        })
+        .catch((data) => {
+          console.log("something went wrong!", data);
+          return null;
+        });
+
+      return {
+        ...item,
+        image,
+      };
+      // return item;
+    })
+  );
+
+  console.log("withImage", withImage);
 
   await browser.close();
 };
 
-const forEachApprovedNameSetNewItemName = (item) => {
-  for (const name of namesToSave) {
-    const match = item.name.match(name);
-    if (match) {
-      return {
-        ...item,
-        name: match[0],
-      };
-    }
-  }
-};
+// const forEachApprovedNameSetNewItemName = (item) => {
+//   for (const name of namesToSave) {
+//     const match = item.name.match(name);
+//     if (match) {
+//       return {
+//         ...item,
+//         name: match[0],
+//       };
+//     }
+//   }
+// };
 
 function fixConsoleLog(page) {
   page.on("console", (msg) => {
@@ -100,12 +122,6 @@ const getProducts = async (page) => {
   return await page.$$eval(".product", transformProducts);
 };
 
-// function getPriceFromString(string) {
-//   console.log("string", string);
-//   const numberRegex = /\d+[.|,]\d{2}/g;
-//   return string.match(numberRegex)[0];
-// }
-
 const transformProducts = (products) => {
   // Why on earth can I not have this in global scope?
   function getPriceFromString(string) {
@@ -114,12 +130,40 @@ const transformProducts = (products) => {
   }
 
   return products.map((product) => {
-    const test = product.querySelector(".price").innerText;
-    const price = getPriceFromString(test);
+    const sourcePrice = product.querySelector(".price").innerText;
+    const price = getPriceFromString(sourcePrice);
+
+    // const imageUrl = product.querySelector("img").getAttribute("src");
+    // let test;
+    // fetch(imageUrl)
+    //   .then((result) => {
+    //     // console.log("result", result.blob());
+    //     test = result.blob();
+
+    //     return result.blob();
+    //   })
+    //   .then((blob) => {
+    //     return blob;
+    //   })
+    //   .catch((data) => {
+    //     // console.log("something went wrong!", data);
+    //     return null;
+    //   });
+
+    // console.log("image", image);
+    // console.log("test", test);
+
+    //---------
+    // .then((data) => {
+    //   console.log("data", data);
+    // });
+    // console.log("image", await image);
 
     return {
       name: product.querySelector("h2").innerText,
       price,
+      // image,
+      url: product.querySelector("img").getAttribute("src"),
     };
   });
 };
