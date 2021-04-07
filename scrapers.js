@@ -1,6 +1,7 @@
 const puppeteer = require("puppeteer"); // Can I use es6 modules?
 const admin = require("firebase-admin");
 const fetch = require("node-fetch");
+const fs = require("fs");
 // const serviceAccount = require("path/to/serviceAccountKey.json");
 
 // admin.initializeApp({
@@ -63,22 +64,34 @@ const fetchProductsFromGronvaxtriket = async (url) => {
         .then((result) => {
           // console.log("result", result.blob());
           // test = result.blob();
-          return result.blob();
+
+          // return result.blob();
+          return result.buffer();
         })
         .catch((data) => {
           console.log("something went wrong!", data);
           return null;
         });
 
+      fs.writeFile(`/tmp/${item.name}.jpg`, image, (err) => {
+        if (err) {
+          console.log("something went wrong with saving the file to disc", err);
+        }
+        console.log("The file has been saved", item.name);
+      });
+
       return {
         ...item,
-        image,
+        imageUrl: `/tmp/${item.name}.jpg`,
       };
       // return item;
     })
   );
 
-  console.log("withImage", withImage);
+  // Save to database
+  // withImage.forEach(async (item) => {
+  //   await db.collection("Plants").add(item);
+  // });
 
   await browser.close();
 };
@@ -163,7 +176,7 @@ const transformProducts = (products) => {
       name: product.querySelector("h2").innerText,
       price,
       // image,
-      url: product.querySelector("img").getAttribute("src"),
+      url: product.querySelector("img").getAttribute("src"), // Maybe I should change this to source url, in order to acctually store my own url on "url"?
     };
   });
 };
