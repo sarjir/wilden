@@ -2,7 +2,6 @@ const puppeteer = require("puppeteer"); // Can I use es6 modules?
 const admin = require("firebase-admin");
 const fetch = require("node-fetch");
 const fs = require("fs");
-// const serviceAccount = require("path/to/serviceAccountKey.json");
 
 // admin.initializeApp({
 //   credential: admin.credential.applicationDefault(),
@@ -12,6 +11,15 @@ const fs = require("fs");
 // admin.initializeApp({
 //   credential: admin.credential.cert(serviceAccount)
 // });
+
+admin.initializeApp(
+  {
+    credential: admin.credential.applicationDefault(),
+    databaseURL: "https://wilden.firebaseio.com",
+    storageBucket: "wilden-cc3da.appspot.com",
+  },
+  "Wilden"
+);
 
 /* Det verkar som att det kommer två priser när en växt är på rea.
  * Hur matchar jag att något kostar typ en miljon?? Känns som att vi borde ta höjd för det i alla fall.
@@ -32,6 +40,8 @@ const fetchProductsFromGronvaxtriket = async (url) => {
 
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
+  const bucket = admin.storage().bucket("gs://wilden-cc3da.appspot.com/");
+
   fixConsoleLog(page);
 
   await page.goto(url);
@@ -73,20 +83,26 @@ const fetchProductsFromGronvaxtriket = async (url) => {
           return null;
         });
 
-      fs.writeFile(`/tmp/${item.name}.jpg`, image, (err) => {
+      const fileName = await item.name.replaceAll(" ", "-");
+      console.log("fileName", fileName);
+      await fs.writeFile(`/tmp/${fileName}.jpg`, image, (err) => {
         if (err) {
           console.log("something went wrong with saving the file to disc", err);
         }
-        console.log("The file has been saved", item.name);
+        console.log("The file has been saved", fileName);
       });
+
+      await bucket.upload(`/tmp/${fileName}.jpg`);
 
       return {
         ...item,
-        imageUrl: `/tmp/${item.name}.jpg`,
+        imageUrl: `/tmp/${fileName}.jpg`,
       };
       // return item;
     })
   );
+
+  // Can I save image to firebase?
 
   // Save to database
   // withImage.forEach(async (item) => {
