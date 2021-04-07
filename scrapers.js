@@ -47,12 +47,6 @@ const fetchProductsFromGronvaxtriket = async (url) => {
   await page.goto(url);
 
   const allProducts = await findAndTransformAllProducts(page);
-  // console.log("allProducts", allProducts);
-
-  // Save to database
-  // allProducts.forEach(async (item) => {
-  //   await db.collection("Plants").add(item);
-  // });
 
   const productsWithVariants = allProducts.map((item) => {
     for (const name of namesToSave) {
@@ -72,10 +66,6 @@ const fetchProductsFromGronvaxtriket = async (url) => {
     productsWithVariants.map(async (item) => {
       const image = await fetch(item.url)
         .then((result) => {
-          // console.log("result", result.blob());
-          // test = result.blob();
-
-          // return result.blob();
           return result.buffer();
         })
         .catch((data) => {
