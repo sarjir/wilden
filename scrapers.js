@@ -82,7 +82,8 @@ const fetchProductsFromGronvaxtriket = async (url) => {
         console.log("The file has been saved", fileName);
       });
 
-      await bucket.upload(`/tmp/${fileName}.jpg`);
+      // Varje gång jag kör sparar vi nya bilder. Kommenterar ut för nu!
+      // await bucket.upload(`/tmp/${fileName}.jpg`);
 
       return {
         ...item,
@@ -91,8 +92,6 @@ const fetchProductsFromGronvaxtriket = async (url) => {
       // return item;
     })
   );
-
-  // Can I save image to firebase?
 
   // Save to database
   // withImage.forEach(async (item) => {

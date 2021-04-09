@@ -1,2 +1,3 @@
 node_modules/
 wilden-*.json
+my-app/src/firebase.js
