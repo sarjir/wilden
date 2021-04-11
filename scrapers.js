@@ -50,69 +50,33 @@ const fetchProductsFromGronvaxtriket = async (url) => {
 
   const filterOnlyChosen = allProducts.filter((item) => {
     let match;
-    for (let i = 0; i < namesToSave.length; i++) {
-      // console.log("i", i);
-      console.log(`*** item ${i} ***`);
 
-      const name = namesToSave[i];
-      // console.log("name", name);
-      // console.log("item.name", item.name);
-      // match = item.name.match(name); // Denna verkar bara matcha när namnet exakt samma.
+    const addMatch = (theMatch) => {
+      match = theMatch;
+    };
 
-      if (item.name.match(name)) {
-        match = item.name.match(name);
-      }
-      // console.log("in loop match", match);
-      // console.log("in loop !!match", !!match);
-      // console.log("*** next loop ****");
-    }
-    // console.log("match", match);
-    // console.log("!!match", !!match);
-    // console.log("-- return match, next item --");
+    checkIfMatch(item, addMatch);
 
     return !!match;
   });
 
   console.log("filterOnlyChosen", filterOnlyChosen);
 
-  const productsWithVariants = filterOnlyChosen
-    // .filter((item) => {
-    //   let match;
-    //   for (let i = 0; i < namesToSave.length; i++) {
-    //     console.log("i", i);
-    //     const name = namesToSave[i];
-    //     console.log("name", name);
-    //     console.log("item.name", item.name);
-    //     match = item.name.match(name); // Denna verkar bara matcha när namnet exakt samma.
-    //     console.log("match", match);
-    //     console.log("*******");
-    //     console.log("!!match", !!match);
-    //   }
-    //   return !!match;
-    // })
-    .map((item) => {
-      // Det verkar som att denna loop bara kollar på Monstera siltepecana just nu?
-      // console.log("item.name", item.name);
-      // console.log("item", namesToSave.includes(item.name));
-      // for (let name of namesToSave) {
-      for (let i = 0; i < namesToSave.length; i++) {
-        const name = namesToSave[i];
-        const match = item.name.match(name); // Denna verkar bara matcha när namnet exakt samma.
-        // console.log("item.name", item.name);
-        // console.log("name", name);
-        // console.log("match", match);
-        // console.log("********");
-        if (match) {
-          return {
-            ...item,
-            variant: match[0],
-            website: url,
-          };
-        }
+  const productsWithVariants = filterOnlyChosen.map((item) => {
+    let itemWithVariant;
 
-        // return item;
-      }
-    });
+    const makeItemWithVariant = (match) => {
+      itemWithVariant = {
+        ...item,
+        variant: match[0],
+        website: url,
+      };
+    };
+
+    checkIfMatch(item, makeItemWithVariant);
+
+    return itemWithVariant;
+  });
 
   console.log("productsWithVariants", productsWithVariants);
 
@@ -161,6 +125,16 @@ const fetchProductsFromGronvaxtriket = async (url) => {
   // });
 
   await browser.close();
+};
+
+const checkIfMatch = (item, actOnMatch) => {
+  for (let name of namesToSave) {
+    if (item.name.match(name)) {
+      match = item.name.match(name);
+
+      actOnMatch(match);
+    }
+  }
 };
 
 function fixConsoleLog(page) {
