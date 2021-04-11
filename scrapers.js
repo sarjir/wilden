@@ -48,19 +48,73 @@ const fetchProductsFromGronvaxtriket = async (url) => {
 
   const allProducts = await findAndTransformAllProducts(page);
 
-  const productsWithVariants = allProducts.map((item) => {
-    for (const name of namesToSave) {
-      const match = item.name.match(name); // Denna verkar bara matcha när namnet exakt samma.
-      if (match) {
-        return {
-          ...item,
-          variant: match[0],
-        };
-      }
+  const filterOnlyChosen = allProducts.filter((item) => {
+    let match;
+    for (let i = 0; i < namesToSave.length; i++) {
+      // console.log("i", i);
+      console.log(`*** item ${i} ***`);
 
-      return item;
+      const name = namesToSave[i];
+      // console.log("name", name);
+      // console.log("item.name", item.name);
+      // match = item.name.match(name); // Denna verkar bara matcha när namnet exakt samma.
+
+      if (item.name.match(name)) {
+        match = item.name.match(name);
+      }
+      // console.log("in loop match", match);
+      // console.log("in loop !!match", !!match);
+      // console.log("*** next loop ****");
     }
+    // console.log("match", match);
+    // console.log("!!match", !!match);
+    // console.log("-- return match, next item --");
+
+    return !!match;
   });
+
+  console.log("filterOnlyChosen", filterOnlyChosen);
+
+  const productsWithVariants = filterOnlyChosen
+    // .filter((item) => {
+    //   let match;
+    //   for (let i = 0; i < namesToSave.length; i++) {
+    //     console.log("i", i);
+    //     const name = namesToSave[i];
+    //     console.log("name", name);
+    //     console.log("item.name", item.name);
+    //     match = item.name.match(name); // Denna verkar bara matcha när namnet exakt samma.
+    //     console.log("match", match);
+    //     console.log("*******");
+    //     console.log("!!match", !!match);
+    //   }
+    //   return !!match;
+    // })
+    .map((item) => {
+      // Det verkar som att denna loop bara kollar på Monstera siltepecana just nu?
+      // console.log("item.name", item.name);
+      // console.log("item", namesToSave.includes(item.name));
+      // for (let name of namesToSave) {
+      for (let i = 0; i < namesToSave.length; i++) {
+        const name = namesToSave[i];
+        const match = item.name.match(name); // Denna verkar bara matcha när namnet exakt samma.
+        // console.log("item.name", item.name);
+        // console.log("name", name);
+        // console.log("match", match);
+        // console.log("********");
+        if (match) {
+          return {
+            ...item,
+            variant: match[0],
+            website: url,
+          };
+        }
+
+        // return item;
+      }
+    });
+
+  console.log("productsWithVariants", productsWithVariants);
 
   const withImage = await Promise.all(
     productsWithVariants.map(async (item) => {
@@ -74,7 +128,7 @@ const fetchProductsFromGronvaxtriket = async (url) => {
         });
 
       const fileName = await item.name.replaceAll(" ", "-");
-      console.log("fileName", fileName);
+
       await fs.writeFile(`/tmp/${fileName}.jpg`, image, (err) => {
         if (err) {
           console.log("something went wrong with saving the file to disc", err);
@@ -87,31 +141,27 @@ const fetchProductsFromGronvaxtriket = async (url) => {
 
       return {
         ...item,
-        imageUrl: `/tmp/${fileName}.jpg`,
+        imageUrl: `/tmp/${fileName}.jpg`, // Borde spara utan tmp. Då kan jag använda den urlen för att hämta från storage senare
       };
       // return item;
     })
   );
 
+  console.log(
+    "withImage.filter",
+    withImage.filter((item) => {
+      return !!item.variant;
+    })
+  );
+
   // Save to database
   // withImage.forEach(async (item) => {
-  //   await db.collection("Plants").add(item);
+  //   console.log("item.variant", item.variant);
+  //   await db.collection(item.variant).add(item);
   // });
 
   await browser.close();
 };
-
-// const forEachApprovedNameSetNewItemName = (item) => {
-//   for (const name of namesToSave) {
-//     const match = item.name.match(name);
-//     if (match) {
-//       return {
-//         ...item,
-//         name: match[0],
-//       };
-//     }
-//   }
-// };
 
 function fixConsoleLog(page) {
   page.on("console", (msg) => {
