@@ -175,50 +175,13 @@ const getProducts = async (page) => {
 };
 
 const transformProducts = (products) => {
-  console.log("getPriceFromString", getPriceFromString);
-  console.log("products", products);
-  console.log("HEEEELLLLOOOOO");
-  // Why on earth can I not have this in global scope?
-  // function getPriceFromString(string) {
-  //   const numberRegex = /(\d+[.|,])?\d+[.|,]\d+/g;
-  //   return string.match(numberRegex)[0];
-  // }
-
   return products.map((product) => {
-    console.log("hi??");
     const sourcePrice = product.querySelector(".price").innerText;
     const price = getPriceFromString(sourcePrice);
-
-    // const imageUrl = product.querySelector("img").getAttribute("src");
-    // let test;
-    // fetch(imageUrl)
-    //   .then((result) => {
-    //     // console.log("result", result.blob());
-    //     test = result.blob();
-
-    //     return result.blob();
-    //   })
-    //   .then((blob) => {
-    //     return blob;
-    //   })
-    //   .catch((data) => {
-    //     // console.log("something went wrong!", data);
-    //     return null;
-    //   });
-
-    // console.log("image", image);
-    // console.log("test", test);
-
-    //---------
-    // .then((data) => {
-    //   console.log("data", data);
-    // });
-    // console.log("image", await image);
 
     return {
       name: product.querySelector("h2").innerText,
       price,
-      // image,
       url: product.querySelector("img").getAttribute("src"), // Maybe I should change this to source url, in order to acctually store my own url on "url"?
     };
   });
