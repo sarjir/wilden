@@ -1,7 +1,12 @@
 const puppeteer = require("puppeteer"); // Can I use es6 modules?
 const admin = require("firebase-admin");
 const fetch = require("node-fetch");
+const priceHandler = require("./price-handler.js");
 const fs = require("fs");
+// import puppeteer from "puppeteer"; // Can I use es6 modules?
+// import admin from "firebase-admin";
+// import fetch from "node-fetch";
+// import fs from "fs";
 
 // admin.initializeApp({
 //   credential: admin.credential.applicationDefault(),
@@ -12,7 +17,7 @@ const fs = require("fs");
 //   credential: admin.credential.cert(serviceAccount)
 // });
 
-admin.initializeApp(
+const app = admin.initializeApp(
   {
     credential: admin.credential.applicationDefault(),
     databaseURL: "https://wilden.firebaseio.com",
@@ -111,18 +116,17 @@ const fetchProductsFromGronvaxtriket = async (url) => {
     })
   );
 
-  console.log(
-    "withImage.filter",
-    withImage.filter((item) => {
-      return !!item.variant;
-    })
-  );
+  console.log("withImage", withImage);
 
   // Save to database
-  // withImage.forEach(async (item) => {
-  //   console.log("item.variant", item.variant);
-  //   await db.collection(item.variant).add(item);
-  // });
+  withImage.forEach(async (item) => {
+    // const now = new Date();
+    // const options = { year: "numeric", month: "numeric", day: "numeric" };
+    // const currentDate = now.toLocaleDateString("sv-SE", options);
+    //******* */ use this one, but just not yet.*******
+    // await db.collection(item.variant).add(item);
+    // await variantRef.collection(currentDate).add(item);
+  });
 
   await browser.close();
 };
@@ -146,12 +150,18 @@ function fixConsoleLog(page) {
 
 async function findAndTransformAllProducts(page) {
   let allProducts = [];
+  const { getPriceFromString } = await priceHandler;
+  await page.exposeFunction("getPriceFromString", getPriceFromString);
 
   while (await findNextPageButton(page)) {
     const products = await getProducts(page);
+    console.log("products", products);
+
     allProducts = [...allProducts, ...products];
     await pressNextPage(page);
   }
+
+  console.log("allProducts", allProducts);
 
   return allProducts;
 }
@@ -165,13 +175,17 @@ const getProducts = async (page) => {
 };
 
 const transformProducts = (products) => {
+  console.log("getPriceFromString", getPriceFromString);
+  console.log("products", products);
+  console.log("HEEEELLLLOOOOO");
   // Why on earth can I not have this in global scope?
-  function getPriceFromString(string) {
-    const numberRegex = /(\d+[.|,])?\d+[.|,]\d+/g;
-    return string.match(numberRegex)[0];
-  }
+  // function getPriceFromString(string) {
+  //   const numberRegex = /(\d+[.|,])?\d+[.|,]\d+/g;
+  //   return string.match(numberRegex)[0];
+  // }
 
   return products.map((product) => {
+    console.log("hi??");
     const sourcePrice = product.querySelector(".price").innerText;
     const price = getPriceFromString(sourcePrice);
 
@@ -220,3 +234,6 @@ async function pressNextPage(page) {
 fetchProductsFromGronvaxtriket(
   "https://gronvaxtriket.se/product-category/alla-vaxter/"
 );
+
+// export default fetchProductsFromGronvaxtriket;
+module.exports = fetchProductsFromGronvaxtriket;
