@@ -1,3 +1,5 @@
 my-app/src/firebase.js
 wilden-*.json
 ./*/node_modules/
+.firebaserc
+firebase.json
