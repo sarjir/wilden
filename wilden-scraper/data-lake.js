@@ -29,7 +29,7 @@ const fetchProductsFromGronvaxtriket = async (url) => {
 
   const withImage = await Promise.all(
     allProducts.map(async (item) => {
-      const image = await fetch(item.url)
+      const image = await fetch(item.originalImageUrl)
         .then((result) => {
           return result.buffer();
         })
@@ -38,16 +38,23 @@ const fetchProductsFromGronvaxtriket = async (url) => {
           return null; // Do I really want to return null here? Or do I want to end the script?
         });
 
-      const fileName = await item.name.replaceAll(' ', '-');
+      const fileName = await item.name
+        .replaceAll(' ', '_')
+        .replaceAll("'", '')
+        .replaceAll('(', '')
+        .replaceAll(')', '')
+        .replaceAll('/', '');
 
-      await fs.writeFile(`/tmp/${fileName}.jpg`, image, (err) => {
+      await fs.writeFile(`/tmp/${fileName}.jpg`, image, async (err) => {
         if (err) {
           console.log('something went wrong with saving the file to disc', err);
         }
-        console.log('The file has been saved', fileName);
-      });
 
-      const doesItReturn = await bucket.upload(`/tmp/${fileName}.jpg`);
+        console.log('The file has been saved', fileName);
+        if (fs.existsSync(`/tmp/${fileName}.jpg`)) {
+          await bucket.upload(`/tmp/${fileName}.jpg`);
+        }
+      });
 
       return {
         ...item,
