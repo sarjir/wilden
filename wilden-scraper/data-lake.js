@@ -27,38 +27,6 @@ const fetchProductsFromGronvaxtriket = async (url) => {
 
   const allProducts = await findAllProducts(page);
 
-  // const filterOnlyChosen = allProducts.filter((item) => {
-  //   let match;
-
-  //   const addMatch = (theMatch) => {
-  //     match = theMatch;
-  //   };
-
-  //   checkIfMatch(item, addMatch);
-
-  //   return !!match;
-  // });
-
-  // console.log('filterOnlyChosen', filterOnlyChosen);
-
-  // const productsWithVariants = filterOnlyChosen.map((item) => {
-  //   let itemWithVariant;
-
-  //   const makeItemWithVariant = (match) => {
-  //     itemWithVariant = {
-  //       ...item,
-  //       variant: match[0],
-  //       website: url,
-  //     };
-  //   };
-
-  // checkIfMatch(item, makeItemWithVariant);
-
-  // return itemWithVariant;
-  // });
-
-  // console.log('productsWithVariants', productsWithVariants);
-
   const withImage = await Promise.all(
     allProducts.map(async (item) => {
       const image = await fetch(item.url)
@@ -79,29 +47,17 @@ const fetchProductsFromGronvaxtriket = async (url) => {
         console.log('The file has been saved', fileName);
       });
 
-      // Varje gång jag kör sparar vi nya bilder. Kommenterar ut för nu!
       const doesItReturn = await bucket.upload(`/tmp/${fileName}.jpg`);
-      console.log('doesItReturn', doesItReturn);
 
       return {
         ...item,
-        imageUrl: `${fileName}.jpg`, // Borde spara utan tmp. Då kan jag använda den urlen för att hämta från storage senare
+        imageUrl: `${fileName}.jpg`,
       };
-      // return item;
     })
   );
 
-  // console.log('withImage', withImage);
-
-  // Save to database
   withImage.forEach(async (item) => {
-    // const now = new Date();
-    // const options = { year: "numeric", month: "numeric", day: "numeric" };
-    // const currentDate = now.toLocaleDateString("sv-SE", options);
-    //******* */ use this one, but just not yet.*******
-    // await db.collection(item.variant).add(item);
     await db.collection('data-lake').add(item);
-    // await variantRef.collection(currentDate).add(item);
   });
 
   await browser.close();
@@ -145,7 +101,7 @@ const transformProducts = (products) => {
     return {
       name: product.querySelector('h2').innerText,
       price,
-      url: product.querySelector('img').getAttribute('src'), // Maybe I should change this to source url, in order to acctually store my own url on "url"?
+      originalImageUrl: product.querySelector('img').getAttribute('src'), // Maybe I should change this to source url, in order to acctually store my own url on "url"?
     };
   });
 };
@@ -161,5 +117,4 @@ fetchProductsFromGronvaxtriket(
   'https://gronvaxtriket.se/product-category/alla-vaxter/'
 );
 
-// export default fetchProductsFromGronvaxtriket;
 module.exports = fetchProductsFromGronvaxtriket;
