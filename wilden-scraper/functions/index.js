@@ -9,13 +9,15 @@ const fetchProductsFromGronvaxtriket = require('../data-lake');
 //   response.send("Hello from Firebase!");
 // });
 
-exports.collectPlantsFromGronvaxtriket = functions.https.onRequest(
-  async (request, response) => {
+exports.collectPlantsFromGronvaxtriket = functions.pubsub
+  .schedule('every 24 hours')
+  .onRun(async (request, response) => {
     functions.logger.info('Hello logs!', { structuredData: true });
     response.send('Hello from Firebase!');
 
     await fetchProductsFromGronvaxtriket(
       'https://gronvaxtriket.se/product-category/alla-vaxter/'
     );
-  }
-);
+
+    return null;
+  });

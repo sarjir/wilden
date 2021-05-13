@@ -3,3 +3,4 @@ wilden-*.json
 ./*/node_modules/
 .firebaserc
 firebase.json
+ui-debug.log
