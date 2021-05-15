@@ -3,6 +3,7 @@ const admin = require('firebase-admin');
 const fetch = require('node-fetch');
 const priceHandler = require('./price-handler.js');
 const fs = require('fs');
+const functions = require("firebase-functions");
 
 const app = admin.initializeApp(
   {
@@ -33,10 +34,14 @@ const fetchProductsFromGronvaxtriket = async (url) => {
         .then((result) => {
           return result.buffer();
         })
-        .catch((data) => {
-          console.log('something went wrong!', data);
+        .catch((err) => {
+          functions.logger.log('something went wrong!', err)
           return null; // Do I really want to return null here? Or do I want to end the script?
         });
+        
+      if(!image) {
+        return {};
+      }
 
       const fileName = await item.name
         .replaceAll(' ', '_')
@@ -45,14 +50,15 @@ const fetchProductsFromGronvaxtriket = async (url) => {
         .replaceAll(')', '')
         .replaceAll('/', '');
 
+
       await fs.writeFile(`/tmp/${fileName}.jpg`, image, async (err) => {
         if (err) {
-          console.log('something went wrong with saving the file to disc', err);
+          functions.logger.error('something went wrong with saving the file to disc', err);
         }
 
-        console.log('The file has been saved', fileName);
         if (fs.existsSync(`/tmp/${fileName}.jpg`)) {
           await bucket.upload(`/tmp/${fileName}.jpg`);
+          functions.logger.log('The image has been saved', fileName);
         }
       });
 
