@@ -43,12 +43,15 @@ const fetchProductsFromGronvaxtriket = async (url) => {
         return {};
       }
 
-      const fileName = await item.name
-        .replaceAll(' ', '_')
-        .replaceAll("'", '')
-        .replaceAll('(', '')
-        .replaceAll(')', '')
-        .replaceAll('/', '');
+      const whitespace = /\s\g/
+      const charactersToRemove = /[‘’]|[[:punct:]]\g/
+      const fileName = await item.name.replace(whitespace, '_').replace(charactersToRemove, '');
+
+        // .replaceAll(' ', '_')
+        // .replaceAll("'", '')
+        // .replaceAll('(', '')
+        // .replaceAll(')', '')
+        // .replaceAll('/', '');
 
 
       await fs.writeFile(`/tmp/${fileName}.jpg`, image, async (err) => {
