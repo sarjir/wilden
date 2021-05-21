@@ -1,5 +1,6 @@
 const functions = require('firebase-functions');
-const fetchProductsFromGronvaxtriket = require('../data-lake');
+// const fetchProductsFromGronvaxtriket = require('../data-lake');
+const fetchProductsFromGronvaxtriket = require('plant-price');
 
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
